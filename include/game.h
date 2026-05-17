@@ -13,9 +13,7 @@ typedef struct{
 } Game;
 
 bool game_init(Game *game);
-void game_handle_events(Game *game);
-void game_update(Game *game, float dt);
-void game_render(Game *game);
 void game_close(Game *game);
+void game_run(Game *game);
 
 #endif

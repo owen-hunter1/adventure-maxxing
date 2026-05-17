@@ -1,13 +1,26 @@
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_events.h>
 #include <SDL2/SDL_keycode.h>
+#include <SDL2/SDL_pixels.h>
 #include <SDL2/SDL_render.h>
+#include <SDL2/SDL_stdinc.h>
+#include <SDL2/SDL_timer.h>
 #include <SDL2/SDL_video.h>
 #include <stdbool.h>
+#include <wchar.h>
 #include "game.h"
 
+// window size
 static const int WINDOW_WIDTH = 640;
 static const int WINDOW_HEIGHT = 480;
+
+// fps
+static const float TIMESTEP = 1.0f / 60.0f;
+
+// function declarations
+static void game_update(Game *game, float delta);
+static void game_render(Game *game, float alpha);
+static void game_handle_events(Game *game);
 
 //initialize SDL window and renderer
 bool game_init(Game *game){
@@ -19,19 +32,23 @@ bool game_init(Game *game){
     game->width = WINDOW_WIDTH;
     game->height = WINDOW_HEIGHT;
 
-    game->window = SDL_CreateWindow("Adventure Max", SDL_WINDOWPOS_UNDEFINED, game->height, game->width, WINDOW_HEIGHT, 0);
+    SDL_SetHint(SDL_HINT_RENDER_SCALE_QUALITY, "linear");
+
+    game->window = SDL_CreateWindow("Adventure Max", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED,game->width, game->height, 0);
 
     if(!game->window){
         SDL_Log("Couldn't create SDL Window: %s", SDL_GetError());
+        SDL_Quit();
         return false;
     }
 
-    SDL_SetHint(SDL_HINT_RENDER_SCALE_QUALITY, "linear");
-
-    game->renderer = SDL_CreateRenderer(game->window, -1, SDL_RENDERER_ACCELERATED);
+    game->renderer = SDL_CreateRenderer(game->window, -1, SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC);
 
     if(!game->renderer){
         SDL_Log("Couldn't create SDL Renderer: %s", SDL_GetError());
+        SDL_DestroyWindow(game->window);
+        game->window = NULL;
+        SDL_Quit();
         return false;
     }
 
@@ -60,12 +77,49 @@ void game_handle_events(Game *game){
     }
 }
 
-void game_update(Game *game, float dt){
+void game_update(Game *game, float delta){
 
 }
 
-void game_render(Game *game){
+void game_render(Game *game, float alpha){
+    SDL_SetRenderDrawColor(game->renderer, 0, 0, 255,255);
+    SDL_RenderClear(game->renderer);
 
+    SDL_RenderPresent(game->renderer);
+}
+
+//game loop
+void game_run(Game *game){
+
+    Uint64 previous = SDL_GetPerformanceCounter();
+    float lag = 0.0;
+
+    while(game->running){
+
+        Uint64 current = SDL_GetPerformanceCounter();
+        float elapsed = (float)(current - previous) / SDL_GetPerformanceFrequency(); // ticks * (seconds / ticks) to convert elapsed ticks to seconds
+        
+        // 
+        if(elapsed >= 0.25f){
+            elapsed = 0.25f;
+        }
+
+        previous = current;
+        lag += elapsed;
+
+        // handle game logic
+        game_handle_events(game);
+
+        // keeps update fixed
+        while (lag >= TIMESTEP) {
+            game_update(game,TIMESTEP);
+            lag -= TIMESTEP;
+        }
+
+        // alpha for position interpolation
+        float alpha = lag / TIMESTEP;
+        game_render(game, alpha);
+    }
 }
 
 //handle game shutdown
