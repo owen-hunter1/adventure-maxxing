@@ -1,0 +1,22 @@
+[
+  {
+    "arguments": [
+      "/usr/bin/clang",
+      "-std=c11",
+      "-Wall",
+      "-Wextra",
+      "-Wpedantic",
+      "-Iinclude",
+      "-g",
+      "-O0",
+      "-fsanitize=address,undefined",
+      "-c",
+      "-o",
+      "src/game.o",
+      "src/game.c"
+    ],
+    "directory": "/home/owen/Dev/Projects/adventure-maxxing",
+    "file": "/home/owen/Dev/Projects/adventure-maxxing/src/game.c",
+    "output": "/home/owen/Dev/Projects/adventure-maxxing/src/game.o"
+  }
+]
