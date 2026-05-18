@@ -1,7 +1,6 @@
 #include "game.h"
 
 int main(void){
-
     Game game = {0};
 
     if(!game_init(&game)){
@@ -11,5 +10,5 @@ int main(void){
 
     game_run(&game);
     game_close(&game);
-
+    return 0;
 }

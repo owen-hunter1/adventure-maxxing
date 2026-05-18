@@ -26,6 +26,8 @@ static void game_handle_events(Game *game);
 
 //initialize SDL window and renderer
 bool game_init(Game *game){
+    printf("Initializing game...\n");
+
     if(SDL_Init(SDL_INIT_VIDEO) < 0){
         SDL_Log("Couldn't initialize SDL: %s", SDL_GetError());
         return false;
@@ -60,6 +62,8 @@ bool game_init(Game *game){
 
     world_init(&game->world);
 
+    printf("finished initializing game!\n");
+
     return true;
 }
 
@@ -91,6 +95,9 @@ void game_render(Game *game, float alpha){
     SDL_SetRenderDrawColor(game->renderer, 0, 0, 255,255);
     SDL_RenderClear(game->renderer);
 
+    //render entities
+    world_render(&game->world, game->renderer, alpha);
+
     SDL_RenderPresent(game->renderer);
 }
 
@@ -105,7 +112,7 @@ void game_run(Game *game){
         Uint64 current = SDL_GetPerformanceCounter();
         float elapsed = (float)(current - previous) / SDL_GetPerformanceFrequency(); // ticks * (seconds / ticks) to convert elapsed ticks to seconds
         
-        // 
+        // cap elapsed time
         if(elapsed > MAX_FRAME_TIME ){
             elapsed = MAX_FRAME_TIME;
         }
