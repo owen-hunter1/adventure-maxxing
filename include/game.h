@@ -1,6 +1,7 @@
 #ifndef GAME_H
 #define GAME_H
 
+#include "world.h"
 #include <stdbool.h>
 #include <SDL2/SDL.h>
 
@@ -10,6 +11,7 @@ typedef struct{
     int height;
     SDL_Window *window;
     SDL_Renderer *renderer;
+    World world;
 } Game;
 
 bool game_init(Game *game);

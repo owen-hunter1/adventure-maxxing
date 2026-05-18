@@ -9,6 +9,7 @@
 #include <stdbool.h>
 #include <wchar.h>
 #include "game.h"
+#include "world.h"
 
 // window size
 static const int WINDOW_WIDTH = 640;
@@ -16,9 +17,10 @@ static const int WINDOW_HEIGHT = 480;
 
 // fps
 static const float TIMESTEP = 1.0f / 60.0f;
+static const float MAX_FRAME_TIME = 0.25f;
 
 // function declarations
-static void game_update(Game *game, float delta);
+static void game_update(Game *game, float dt);
 static void game_render(Game *game, float alpha);
 static void game_handle_events(Game *game);
 
@@ -29,11 +31,13 @@ bool game_init(Game *game){
         return false;
     }
 
+    // set height and width
     game->width = WINDOW_WIDTH;
     game->height = WINDOW_HEIGHT;
 
     SDL_SetHint(SDL_HINT_RENDER_SCALE_QUALITY, "linear");
 
+    // create window
     game->window = SDL_CreateWindow("Adventure Max", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED,game->width, game->height, 0);
 
     if(!game->window){
@@ -41,7 +45,7 @@ bool game_init(Game *game){
         SDL_Quit();
         return false;
     }
-
+    // create renderer
     game->renderer = SDL_CreateRenderer(game->window, -1, SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC);
 
     if(!game->renderer){
@@ -53,6 +57,8 @@ bool game_init(Game *game){
     }
 
     game->running = true;
+
+    world_init(&game->world);
 
     return true;
 }
@@ -77,8 +83,8 @@ void game_handle_events(Game *game){
     }
 }
 
-void game_update(Game *game, float delta){
-
+void game_update(Game *game, float dt){
+    world_update(&game->world, dt);
 }
 
 void game_render(Game *game, float alpha){
@@ -100,8 +106,8 @@ void game_run(Game *game){
         float elapsed = (float)(current - previous) / SDL_GetPerformanceFrequency(); // ticks * (seconds / ticks) to convert elapsed ticks to seconds
         
         // 
-        if(elapsed >= 0.25f){
-            elapsed = 0.25f;
+        if(elapsed > MAX_FRAME_TIME ){
+            elapsed = MAX_FRAME_TIME;
         }
 
         previous = current;
@@ -124,6 +130,9 @@ void game_run(Game *game){
 
 //handle game shutdown
 void game_close(Game *game){
+
+    world_destroy(&game->world);
+
     if(game->renderer){
         SDL_DestroyRenderer(game->renderer);
     }
